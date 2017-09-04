@@ -7,7 +7,7 @@ every device has that and, let's be honest, it takes **forever** to pair.
 
 Well, then this is for you! Easily copy all kinds of files to all
 devices within your local network. Just select all files you want to
-copy, connect to another device and wait the program to do its work
+copy, connect to another device and wait for the program to do its work
 
 ## DISCLAIMER
 

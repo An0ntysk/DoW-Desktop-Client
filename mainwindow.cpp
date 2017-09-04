@@ -95,7 +95,7 @@ void MainWindow::setupMainView()
     QAction* fileMenuSettings = new QAction(QStringLiteral("Settings"), this);
     fileMenuSettings->setShortcut(QKeySequence::Preferences);
     fileMenuSettings->setStatusTip(QStringLiteral("Adjust some minor things"));
-    QObject::connect(fileMenuSettings, &QAction::triggered, [](){
+    QObject::connect(fileMenuSettings, &QAction::triggered, [this](){
         _settingsDialog->show();
     });
 
@@ -108,13 +108,13 @@ void MainWindow::setupMainView()
 
     QAction* helpMenuAbout = new QAction(QStringLiteral("About"), this);
     helpMenuAbout->setStatusTip(QStringLiteral("Information about DoW"));
-    QObject::connect(helpMenuAbout, &QAction::triggered, [](){
+    QObject::connect(helpMenuAbout, &QAction::triggered, [this](){
         QMessageBox::about(this, QStringLiteral("About"), QStringLiteral("Some info text"));
     });
 
     QAction* helpMenuAboutQt = new QAction(QStringLiteral("About Qt"), this);
     helpMenuAboutQt->setStatusTip(QStringLiteral("Powered by Qt"));
-    QObject::connect(helpMenuAboutQt, &QAction::triggered, [&](){
+    QObject::connect(helpMenuAboutQt, &QAction::triggered, [this](){
         QMessageBox::aboutQt(this);
     });
 
@@ -124,9 +124,9 @@ void MainWindow::setupMainView()
 
 void MainWindow::setupSettingsView()
 {
-    // 68, because it's the smallest possible height
     // 325, because I think it looks good
-    _settingsDialog->setFixedSize(68, 325);
+    // 68, because it's the smallest possible height
+    _settingsDialog->setFixedSize(325, 68);
     _settingsDialog->setWindowModality(Qt::WindowModal);
 
     QLineEdit* searchDir = new QLineEdit(_settingsDialog);
@@ -136,7 +136,7 @@ void MainWindow::setupSettingsView()
 
     QPushButton* selectDefaultDirButton = new QPushButton(QStringLiteral("..."), _settingsDialog);
     selectDefaultDirButton->setSizePolicy(QSizePolicy::Policy::Minimum, QSizePolicy::Policy::Fixed);
-    QObject::connect(selectDefaultDirButton, &QPushButton::clicked, [&](){
+    QObject::connect(selectDefaultDirButton, &QPushButton::clicked, [this](){
         QMessageBox::information(this, QString(), QStringLiteral("H: %0\nW: %1").arg(_settingsDialog->height()).arg(_settingsDialog->width()));
     });
 

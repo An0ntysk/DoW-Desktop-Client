@@ -52,10 +52,7 @@ private slots:
     void onQueueFilesClicked();
     void onSendFilesClicked();
 
-    void onFileMenuSettingsClicked();
-    void onFileMenuExitClicked();
-    void onHelpMenuAboutClicked();
-    void onHelpMenuAboutQtClicked();
+    void onSelectDefaultDirClicked();
 
 public:
     MainWindow(QWidget* parent = 0);

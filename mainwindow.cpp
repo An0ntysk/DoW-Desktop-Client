@@ -31,7 +31,9 @@
 #include <QProgressBar>
 #include <QLabel>
 #include <QSettings>
+#include <QLineEdit>
 #include <QCloseEvent>
+#include <QCheckBox>
 
 #define nameOf(thing) #thing
 
@@ -42,28 +44,28 @@ namespace {
 
 void MainWindow::setupMainView()
 {
-    QWidget* _buttonSpacer = new QWidget(_content);
-    QWidget* _progressContainer = new QWidget(_content);
+    QWidget *buttonSpacer = new QWidget(_content);
+    QWidget *progressContainer = new QWidget(_content);
 
     _fileTable->setHorizontalHeaderLabels({
                                               QStringLiteral("Filename"),
                                               QStringLiteral("Progress"),
                                           });
 
-    QPushButton *_connectButton = new QPushButton(QStringLiteral("Connect"), _content);
-    QPushButton* _queueFilesButton = new QPushButton(QStringLiteral("Queue Files"), _content);
-    QPushButton* _sendFilesButton = new QPushButton(QStringLiteral("Send Files"), _content);
+    QPushButton *connectButton = new QPushButton(QStringLiteral("Connect"), _content);
+    QPushButton *queueFilesButton = new QPushButton(QStringLiteral("Queue Files"), _content);
+    QPushButton *sendFilesButton = new QPushButton(QStringLiteral("Send Files"), _content);
 
-    _buttonSpacer->setSizePolicy(QSizePolicy::Policy::Maximum, QSizePolicy::Policy::Fixed);
-    _connectButton->setSizePolicy(QSizePolicy::Policy::Fixed, QSizePolicy::Policy::Fixed);
-    _queueFilesButton->setSizePolicy(QSizePolicy::Policy::Fixed, QSizePolicy::Policy::Fixed);
-    _sendFilesButton->setSizePolicy(QSizePolicy::Policy::Fixed, QSizePolicy::Policy::Fixed);
+    buttonSpacer->setSizePolicy(QSizePolicy::Policy::Maximum, QSizePolicy::Policy::Fixed);
+    connectButton->setSizePolicy(QSizePolicy::Policy::Fixed, QSizePolicy::Policy::Fixed);
+    queueFilesButton->setSizePolicy(QSizePolicy::Policy::Fixed, QSizePolicy::Policy::Fixed);
+    sendFilesButton->setSizePolicy(QSizePolicy::Policy::Fixed, QSizePolicy::Policy::Fixed);
     _currentProgressText->setSizePolicy(QSizePolicy::Policy::Fixed, QSizePolicy::Policy::Fixed);
     _totalProgressText->setSizePolicy(QSizePolicy::Policy::Fixed, QSizePolicy::Policy::Fixed);
 
-    QObject::connect(_connectButton, &QAbstractButton::clicked, this, &MainWindow::onConnectClicked);
-    QObject::connect(_queueFilesButton, &QAbstractButton::clicked, this, &MainWindow::onQueueFilesClicked);
-    QObject::connect(_sendFilesButton, &QAbstractButton::clicked, this, &MainWindow::onSendFilesClicked);
+    QObject::connect(connectButton, &QAbstractButton::clicked, this, &MainWindow::onConnectClicked);
+    QObject::connect(queueFilesButton, &QAbstractButton::clicked, this, &MainWindow::onQueueFilesClicked);
+    QObject::connect(sendFilesButton, &QAbstractButton::clicked, this, &MainWindow::onSendFilesClicked);
 
     _currentProgress->setMinimum(0);
     _currentProgress->setMaximum(100);
@@ -75,44 +77,72 @@ void MainWindow::setupMainView()
 
     QGridLayout* layout = new QGridLayout(_content);
     layout->addWidget(_fileTable, 0, 0, 1, -1);
-    layout->addWidget(_connectButton, 1, 0);
-    layout->addWidget(_queueFilesButton, 1, 1);
-    layout->addWidget(_buttonSpacer, 1, 2, Qt::AlignHCenter);
-    layout->addWidget(_sendFilesButton, 1, 3);
-    layout->addWidget(_progressContainer, 2, 0, 1, -1);
+    layout->addWidget(connectButton, 1, 0);
+    layout->addWidget(queueFilesButton, 1, 1);
+    layout->addWidget(buttonSpacer, 1, 2, Qt::AlignHCenter);
+    layout->addWidget(sendFilesButton, 1, 3);
+    layout->addWidget(progressContainer, 2, 0, 1, -1);
 
-    QGridLayout* _progressLayout = new QGridLayout(_progressContainer);
-    _progressLayout->addWidget(_currentProgressText, 0, 0);
-    _progressLayout->addWidget(_currentProgress, 0, 1);
-    _progressLayout->addWidget(_totalProgressText, 1, 0);
-    _progressLayout->addWidget(_totalProgress, 1, 1);
-    _progressLayout->setMargin(0);
+    QGridLayout* progressLayout = new QGridLayout(progressContainer);
+    progressLayout->addWidget(_currentProgressText, 0, 0);
+    progressLayout->addWidget(_currentProgress, 0, 1);
+    progressLayout->addWidget(_totalProgressText, 1, 0);
+    progressLayout->addWidget(_totalProgress, 1, 1);
+    progressLayout->setMargin(0);
 
-    QAction* _fileMenuSettings = new QAction(QStringLiteral("Settings"), this);
-    _fileMenuSettings->setShortcut(QKeySequence::Preferences);
-    _fileMenuSettings->setStatusTip(QStringLiteral("Adjust some minor things"));
-    QObject::connect(_fileMenuSettings, &QAction::triggered, this, &MainWindow::onFileMenuSettingsClicked);
+    QAction* fileMenuSettings = new QAction(QStringLiteral("Settings"), this);
+    fileMenuSettings->setShortcut(QKeySequence::Preferences);
+    fileMenuSettings->setStatusTip(QStringLiteral("Adjust some minor things"));
+    QObject::connect(fileMenuSettings, &QAction::triggered, [](){
+        _settingsDialog->show();
+    });
 
-    QAction* _fileMenuExit = new QAction(QStringLiteral("Exit"), this);
-    _fileMenuExit->setShortcut(QKeySequence::Quit);
-    _fileMenuExit->setStatusTip(QStringLiteral("Quit DoW"));
-    QObject::connect(_fileMenuExit, &QAction::triggered, this, &MainWindow::onFileMenuExitClicked);
+    QAction* fileMenuExit = new QAction(QStringLiteral("Exit"), this);
+    fileMenuExit->setShortcut(QKeySequence::Quit);
+    fileMenuExit->setStatusTip(QStringLiteral("Quit DoW"));
+    QObject::connect(fileMenuExit, &QAction::triggered, [this](){
+        close();
+    });
 
-    QAction* _helpMenuAbout = new QAction(QStringLiteral("About"), this);
-    _helpMenuAbout->setStatusTip(QStringLiteral("Information about DoW"));
-    QObject::connect(_helpMenuAbout, &QAction::triggered, this, &MainWindow::onHelpMenuAboutClicked);
+    QAction* helpMenuAbout = new QAction(QStringLiteral("About"), this);
+    helpMenuAbout->setStatusTip(QStringLiteral("Information about DoW"));
+    QObject::connect(helpMenuAbout, &QAction::triggered, [](){
+        QMessageBox::about(this, QStringLiteral("About"), QStringLiteral("Some info text"));
+    });
 
-    QAction* _helpMenuAboutQt = new QAction(QStringLiteral("About Qt"), this);
-    _helpMenuAboutQt->setStatusTip(QStringLiteral("Powered by Qt"));
-    QObject::connect(_helpMenuAboutQt, &QAction::triggered, this, &MainWindow::onHelpMenuAboutQtClicked);
+    QAction* helpMenuAboutQt = new QAction(QStringLiteral("About Qt"), this);
+    helpMenuAboutQt->setStatusTip(QStringLiteral("Powered by Qt"));
+    QObject::connect(helpMenuAboutQt, &QAction::triggered, [&](){
+        QMessageBox::aboutQt(this);
+    });
 
-    menuBar()->addMenu(QStringLiteral("File"))->addActions({_fileMenuSettings, _fileMenuExit});
-    menuBar()->addMenu(QStringLiteral("Help"))->addActions({_helpMenuAbout, _helpMenuAboutQt});
+    menuBar()->addMenu(QStringLiteral("File"))->addActions({fileMenuSettings, fileMenuExit});
+    menuBar()->addMenu(QStringLiteral("Help"))->addActions({helpMenuAbout, helpMenuAboutQt});
 }
 
 void MainWindow::setupSettingsView()
 {
-    QGridLayout* layout = new QGridLayout(_connectDialog);
+    // 68, because it's the smallest possible height
+    // 325, because I think it looks good
+    _settingsDialog->setFixedSize(68, 325);
+
+    QLineEdit* searchDir = new QLineEdit(_settingsDialog);
+    searchDir->setEnabled(false);
+    searchDir->setText(defaultPath);
+    searchDir->setSizePolicy(QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Fixed);
+
+    QPushButton* selectDefaultDirButton = new QPushButton(QStringLiteral("..."), _settingsDialog);
+    selectDefaultDirButton->setSizePolicy(QSizePolicy::Policy::Minimum, QSizePolicy::Policy::Fixed);
+    QObject::connect(selectDefaultDirButton, &QPushButton::clicked, [&](){
+        QMessageBox::information(this, QString(), QStringLiteral("H: %0\nW: %1").arg(_settingsDialog->height()).arg(_settingsDialog->width()));
+    });
+
+    QCheckBox* darkThemeCheckBox = new QCheckBox(QStringLiteral("Come to the dark side"), _settingsDialog);
+
+    QGridLayout* layout = new QGridLayout(_settingsDialog);
+    layout->addWidget(searchDir, 0, 0);
+    layout->addWidget(selectDefaultDirButton, 0, 1, Qt::AlignRight);
+    layout->addWidget(darkThemeCheckBox, 1, 0, 1, -1, Qt::AlignLeft);
 }
 
 void MainWindow::setupConnectView()
@@ -136,24 +166,9 @@ void MainWindow::onSendFilesClicked()
     _idle = false;
 }
 
-void MainWindow::onFileMenuSettingsClicked()
+void MainWindow::onSelectDefaultDirClicked()
 {
-    _settingsDialog->show();
-}
-
-void MainWindow::onFileMenuExitClicked()
-{
-    close();
-}
-
-void MainWindow::onHelpMenuAboutClicked()
-{
-    QMessageBox::about(this, QStringLiteral("About"), QStringLiteral("Some info text"));
-}
-
-void MainWindow::onHelpMenuAboutQtClicked()
-{
-    QMessageBox::aboutQt(this);
+    QFileDialog::getExistingDirectory(this, QStringLiteral("Select new default directory"), QDir::homePath(), QFileDialog::Option::ShowDirsOnly);
 }
 
 MainWindow::MainWindow(QWidget* parent)
@@ -169,6 +184,8 @@ MainWindow::MainWindow(QWidget* parent)
       _settings(new QSettings(QSettings::Format::NativeFormat, QSettings::Scope::UserScope, QApplication::organizationName(), QApplication::applicationName(), this)),
       _idle(true)
 {
+    (void)darkThemeEnabled; // To silence the 'Unused variable'-warning
+
     if (!_settings->contains(QStringLiteral(nameOf(defaultPath)))) {
         _settings->setValue(QStringLiteral(nameOf(defaultPath)), QString());
     }
@@ -178,10 +195,10 @@ MainWindow::MainWindow(QWidget* parent)
     }
 
     auto val = _settings->value(QStringLiteral(nameOf(defaultPath))).toString();
-    defaultPath = val == QString() ? QDir::homePath() : val;
+    defaultPath = val.isEmpty() ? QDir::homePath() : val;
 
     if (_settings->value(QStringLiteral(nameOf(darkThemeEnabled))).toBool()) {
-        // TODO: get a dark theme and apply it when necessary
+        // TODO: get a dark theme and apply it set it up
     }
 
     _connectDialog->setWindowModality(Qt::WindowModal);

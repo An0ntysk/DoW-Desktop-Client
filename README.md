@@ -12,4 +12,7 @@ copy, connect to another device and wait the program to do its work
 ## DISCLAIMER
 
 For now, this version is merely a prototype, not much functionality
-has been implemented and I haven't even started the Android version yet
+has been implemented and I haven't even started the Android version yet.
+Also, unless someone's willing to do the work, there won't be an iOS or
+Mac version, as I don't own either of those and therefore can't compile
+for them.

@@ -127,6 +127,7 @@ void MainWindow::setupSettingsView()
     // 68, because it's the smallest possible height
     // 325, because I think it looks good
     _settingsDialog->setFixedSize(68, 325);
+    _settingsDialog->setWindowModality(Qt::WindowModal);
 
     QLineEdit* searchDir = new QLineEdit(_settingsDialog);
     searchDir->setEnabled(false);
@@ -149,7 +150,7 @@ void MainWindow::setupSettingsView()
 
 void MainWindow::setupConnectView()
 {
-
+    _connectDialog->setWindowModality(Qt::WindowModal);
 }
 
 void MainWindow::onQueueFilesClicked()
@@ -195,11 +196,8 @@ MainWindow::MainWindow(QWidget* parent)
     defaultPath = val.isEmpty() ? QDir::homePath() : val;
 
     if (_settings->value(QStringLiteral(nameOf(darkThemeEnabled))).toBool()) {
-        // TODO: get a dark theme and apply it set it up
+        // TODO: get a dark theme and set it up
     }
-
-    _connectDialog->setWindowModality(Qt::WindowModal);
-    _settingsDialog->setWindowModality(Qt::WindowModal);
 
     setupMainView();
     setupSettingsView();

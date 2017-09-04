@@ -35,11 +35,11 @@ class MainWindow : public QMainWindow
 
     QDialog *_connectDialog, *_settingsDialog;
 
-    QWidget* _content;
+    QWidget *_content;
     QTableWidget *_fileTable;
     QLabel *_currentProgressText, *_totalProgressText;
     QProgressBar *_currentProgress, *_totalProgress;
-    QSettings* _settings;
+    QSettings *_settings;
 
     bool _idle;
 

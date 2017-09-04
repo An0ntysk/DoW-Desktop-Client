@@ -33,6 +33,7 @@
 #include <QSettings>
 #include <QLineEdit>
 #include <QCloseEvent>
+#include <QHeaderView>
 #include <QCheckBox>
 
 #define nameOf(thing) #thing
@@ -47,6 +48,7 @@ void MainWindow::setupMainView()
     QWidget *buttonSpacer = new QWidget(_content);
     QWidget *progressContainer = new QWidget(_content);
 
+    _fileTable->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeMode::Stretch);
     _fileTable->setHorizontalHeaderLabels({
                                               QStringLiteral("Filename"),
                                               QStringLiteral("Progress"),
@@ -63,9 +65,7 @@ void MainWindow::setupMainView()
     _currentProgressText->setSizePolicy(QSizePolicy::Policy::Fixed, QSizePolicy::Policy::Fixed);
     _totalProgressText->setSizePolicy(QSizePolicy::Policy::Fixed, QSizePolicy::Policy::Fixed);
 
-    QObject::connect(connectButton, &QPushButton::clicked, [this](){
-        _connectDialog->show();
-    });
+    QObject::connect(connectButton, &QPushButton::clicked, _connectDialog, &QDialog::show);
     QObject::connect(queueFilesButton, &QPushButton::clicked, this, &MainWindow::onQueueFilesClicked);
     QObject::connect(sendFilesButton, &QPushButton::clicked, this, &MainWindow::onSendFilesClicked);
 
@@ -95,16 +95,12 @@ void MainWindow::setupMainView()
     QAction *fileMenuSettings = new QAction(QStringLiteral("Settings"), this);
     fileMenuSettings->setShortcut(QKeySequence::Preferences);
     fileMenuSettings->setStatusTip(QStringLiteral("Adjust some minor things"));
-    QObject::connect(fileMenuSettings, &QAction::triggered, [this](){
-        _settingsDialog->show();
-    });
+    QObject::connect(fileMenuSettings, &QAction::triggered, _settingsDialog, &QDialog::show);
 
     QAction *fileMenuExit = new QAction(QStringLiteral("Exit"), this);
     fileMenuExit->setShortcut(QKeySequence::Quit);
     fileMenuExit->setStatusTip(QStringLiteral("Quit DoW"));
-    QObject::connect(fileMenuExit, &QAction::triggered, [this](){
-        close();
-    });
+    QObject::connect(fileMenuExit, &QAction::triggered, this, &MainWindow::close);
 
     QAction *helpMenuAbout = new QAction(QStringLiteral("About"), this);
     helpMenuAbout->setStatusTip(QStringLiteral("Information about DoW"));
@@ -128,6 +124,7 @@ void MainWindow::setupSettingsView()
     // 68, because it's the smallest possible height
     _settingsDialog->setFixedSize(325, 68);
     _settingsDialog->setWindowModality(Qt::WindowModal);
+    _settingsDialog->setWindowTitle(QStringLiteral("Settings"));
 
     QLineEdit *searchDir = new QLineEdit(_settingsDialog);
     searchDir->setEnabled(false);
@@ -136,8 +133,12 @@ void MainWindow::setupSettingsView()
 
     QPushButton *selectDefaultDirButton = new QPushButton(QStringLiteral("..."), _settingsDialog);
     selectDefaultDirButton->setSizePolicy(QSizePolicy::Policy::Minimum, QSizePolicy::Policy::Fixed);
-    QObject::connect(selectDefaultDirButton, &QPushButton::clicked, [this](){
-        QMessageBox::information(this, QString(), QStringLiteral("H: %0\nW: %1").arg(_settingsDialog->height()).arg(_settingsDialog->width()));
+    QObject::connect(selectDefaultDirButton, &QPushButton::clicked, [this, searchDir]() -> void {
+        QString newDir = QFileDialog::getExistingDirectory(this, QStringLiteral("Select new default directory"), QDir::homePath(), QFileDialog::Option::ShowDirsOnly);
+
+        if (!newDir.isEmpty()) {
+             searchDir->setText(newDir);
+        }
     });
 
     QCheckBox *darkThemeCheckBox = new QCheckBox(QStringLiteral("Come to the dark side"), _settingsDialog);
@@ -150,8 +151,9 @@ void MainWindow::setupSettingsView()
 
 void MainWindow::setupConnectView()
 {
-    _connectDialog->setFixedSize(225, 300);
+    _connectDialog->setFixedSize(300, 225);
     _connectDialog->setWindowModality(Qt::WindowModal);
+    _connectDialog->setWindowTitle(QStringLiteral("Connect to device"));
 
     QGridLayout *layout = new QGridLayout(_connectDialog);
     (void)layout;
@@ -166,11 +168,6 @@ void MainWindow::onSendFilesClicked()
 {
     _totalProgress->setValue(50);
     _idle = false;
-}
-
-void MainWindow::onSelectDefaultDirClicked()
-{
-    QFileDialog::getExistingDirectory(this, QStringLiteral("Select new default directory"), QDir::homePath(), QFileDialog::Option::ShowDirsOnly);
 }
 
 MainWindow::MainWindow(QWidget *parent)

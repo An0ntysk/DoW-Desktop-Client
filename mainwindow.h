@@ -51,8 +51,6 @@ private slots:
     void onQueueFilesClicked();
     void onSendFilesClicked();
 
-    void onSelectDefaultDirClicked();
-
 public:
     MainWindow(QWidget* parent = 0);
     ~MainWindow() = default;

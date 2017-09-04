@@ -63,7 +63,9 @@ void MainWindow::setupMainView()
     _currentProgressText->setSizePolicy(QSizePolicy::Policy::Fixed, QSizePolicy::Policy::Fixed);
     _totalProgressText->setSizePolicy(QSizePolicy::Policy::Fixed, QSizePolicy::Policy::Fixed);
 
-    QObject::connect(connectButton, &QAbstractButton::clicked, this, &MainWindow::onConnectClicked);
+    QObject::connect(connectButton, &QAbstractButton::clicked, [this](){
+        _connectDialog->show();
+    });
     QObject::connect(queueFilesButton, &QAbstractButton::clicked, this, &MainWindow::onQueueFilesClicked);
     QObject::connect(sendFilesButton, &QAbstractButton::clicked, this, &MainWindow::onSendFilesClicked);
 
@@ -146,11 +148,6 @@ void MainWindow::setupSettingsView()
 }
 
 void MainWindow::setupConnectView()
-{
-
-}
-
-void MainWindow::onConnectClicked()
 {
 
 }

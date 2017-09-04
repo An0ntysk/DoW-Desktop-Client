@@ -48,7 +48,6 @@ class MainWindow : public QMainWindow
     void setupConnectView();
 
 private slots:
-    void onConnectClicked();
     void onQueueFilesClicked();
     void onSendFilesClicked();
 

@@ -35,6 +35,7 @@
 #include <QCloseEvent>
 #include <QHeaderView>
 #include <QCheckBox>
+#include <QStyleFactory>
 
 #define nameOf(thing) #thing
 
@@ -49,10 +50,7 @@ void MainWindow::setupMainView()
     QWidget *progressContainer = new QWidget(_content);
 
     _fileTable->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeMode::Stretch);
-    _fileTable->setHorizontalHeaderLabels({
-                                              QStringLiteral("Filename"),
-                                              QStringLiteral("Progress"),
-                                          });
+    _fileTable->setHorizontalHeaderLabels({ QStringLiteral("Filename") });
 
     QPushButton *connectButton = new QPushButton(QStringLiteral("Connect"), _content);
     QPushButton *queueFilesButton = new QPushButton(QStringLiteral("Queue Files"), _content);
@@ -120,6 +118,21 @@ void MainWindow::setupMainView()
 
 void MainWindow::setupSettingsView()
 {
+    //QApplication::setStyle(QStringLiteral("Fusion"));
+
+    if (!_settings->contains(QStringLiteral(nameOf(defaultPath)))) {
+        _settings->setValue(QStringLiteral(nameOf(defaultPath)), QString());
+    }
+
+    if (!_settings->contains(QStringLiteral(nameOf(darkThemeEnabled)))) {
+        _settings->setValue(QStringLiteral(nameOf(darkThemeEnabled)), false);
+    }
+
+    auto val = _settings->value(QStringLiteral(nameOf(defaultPath))).toString();
+    defaultPath = val.isEmpty() ? QDir::homePath() : val;
+
+    darkThemeEnabled = _settings->value(QStringLiteral(nameOf(darkThemeEnabled))).toBool();
+
     // 325, because I think it looks good
     // 68, because it's the smallest possible height
     _settingsDialog->setFixedSize(325, 68);
@@ -131,22 +144,43 @@ void MainWindow::setupSettingsView()
     searchDir->setText(defaultPath);
     searchDir->setSizePolicy(QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Fixed);
 
-    QPushButton *selectDefaultDirButton = new QPushButton(QStringLiteral("..."), _settingsDialog);
+    QPushButton *selectDefaultDirButton = new QPushButton(QStringLiteral("Browse"), _settingsDialog);
     selectDefaultDirButton->setSizePolicy(QSizePolicy::Policy::Minimum, QSizePolicy::Policy::Fixed);
     QObject::connect(selectDefaultDirButton, &QPushButton::clicked, [this, searchDir]() -> void {
         QString newDir = QFileDialog::getExistingDirectory(this, QStringLiteral("Select new default directory"), QDir::homePath(), QFileDialog::Option::ShowDirsOnly);
 
         if (!newDir.isEmpty()) {
-             searchDir->setText(newDir);
+            searchDir->setText(newDir);
+            _settings->setValue(QStringLiteral(nameOf(defaultPath)), newDir);
+            defaultPath = newDir;
         }
     });
 
     QCheckBox *darkThemeCheckBox = new QCheckBox(QStringLiteral("Come to the dark side"), _settingsDialog);
+    QObject::connect(darkThemeCheckBox, &QCheckBox::toggled, [this](){
+        darkThemeEnabled = !darkThemeEnabled;
+        _settings->setValue(QStringLiteral(nameOf(darkThemeEnabled)), false);
+    });
+
+    darkThemeCheckBox->setChecked(true);
+
+    QPushButton *resetButton= new QPushButton(QStringLiteral("Reset"), _settingsDialog);
+    QObject::connect(resetButton, &QPushButton::clicked, [this, darkThemeCheckBox, searchDir](){
+        if (QMessageBox::question(this, QStringLiteral("Are you sure?"), QStringLiteral("Are you sure you want to revert settings to default?")) == QMessageBox::StandardButton::Yes) {
+            auto homePath = QDir::homePath();
+            searchDir->setText(homePath);
+            _settings->setValue(QStringLiteral(nameOf(defaultPath)), homePath);
+            defaultPath = homePath;
+
+            if (darkThemeEnabled) darkThemeCheckBox->toggle();
+        }
+    });
 
     QGridLayout *layout = new QGridLayout(_settingsDialog);
     layout->addWidget(searchDir, 0, 0);
     layout->addWidget(selectDefaultDirButton, 0, 1, Qt::AlignRight);
-    layout->addWidget(darkThemeCheckBox, 1, 0, 1, -1, Qt::AlignLeft);
+    layout->addWidget(darkThemeCheckBox, 1, 0, Qt::AlignLeft);
+    layout->addWidget(resetButton, 1, 1, Qt::AlignRight);
 }
 
 void MainWindow::setupConnectView()
@@ -161,7 +195,13 @@ void MainWindow::setupConnectView()
 
 void MainWindow::onQueueFilesClicked()
 {
-    QFileDialog::getOpenFileNames(this, QStringLiteral("Select files"), defaultPath, QStringLiteral("All files (*.*)"));
+    QStringList files = QFileDialog::getOpenFileNames(this, QStringLiteral("Select files"), defaultPath, QStringLiteral("All files (*.*)"));
+
+    for (const auto& file : files) {
+        int rowCount = _fileTable->rowCount();
+        _fileTable->insertRow(rowCount);
+        _fileTable->setCellWidget(rowCount, 0, new QLabel(file, _fileTable));
+    }
 }
 
 void MainWindow::onSendFilesClicked()
@@ -175,7 +215,7 @@ MainWindow::MainWindow(QWidget *parent)
       _connectDialog(new QDialog(this)),
       _settingsDialog(new QDialog(this)),
       _content(new QWidget(this)),
-      _fileTable(new QTableWidget(0, 2, this)),
+      _fileTable(new QTableWidget(0, 1, this)),
       _currentProgressText(new QLabel(QStringLiteral("File 0/0"), _content)),
       _totalProgressText(new QLabel(QStringLiteral("Total Progress"), _content)),
       _currentProgress(new QProgressBar(_content)),
@@ -183,23 +223,6 @@ MainWindow::MainWindow(QWidget *parent)
       _settings(new QSettings(QSettings::Format::NativeFormat, QSettings::Scope::UserScope, QApplication::organizationName(), QApplication::applicationName(), this)),
       _idle(true)
 {
-    (void)darkThemeEnabled; // To silence the 'Unused variable'-warning
-
-    if (!_settings->contains(QStringLiteral(nameOf(defaultPath)))) {
-        _settings->setValue(QStringLiteral(nameOf(defaultPath)), QString());
-    }
-
-    if (!_settings->contains(QStringLiteral(nameOf(darkThemeEnabled)))) {
-        _settings->setValue(QStringLiteral(nameOf(darkThemeEnabled)), false);
-    }
-
-    auto val = _settings->value(QStringLiteral(nameOf(defaultPath))).toString();
-    defaultPath = val.isEmpty() ? QDir::homePath() : val;
-
-    if (_settings->value(QStringLiteral(nameOf(darkThemeEnabled))).toBool()) {
-        // TODO: get a dark theme and set it up
-    }
-
     setupMainView();
     setupSettingsView();
     setupConnectView();

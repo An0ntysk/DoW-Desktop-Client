@@ -52,8 +52,7 @@ private slots:
     void onSendFilesClicked();
 
 public:
-    MainWindow(QWidget* parent = 0);
-    ~MainWindow() = default;
+    MainWindow(QWidget *parent = 0);
 
     void closeEvent(QCloseEvent *event) override;
 };

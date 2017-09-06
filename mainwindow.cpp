@@ -19,35 +19,25 @@
 #include "mainwindow.h"
 
 #include <QAction>
+#include <QCheckBox>
+#include <QDir>
 #include <QMenuBar>
-#include <QApplication>
 #include <QStatusBar>
 #include <QGridLayout>
 #include <QTableWidget>
 #include <QFileDialog>
-#include <QDir>
 #include <QPushButton>
 #include <QMessageBox>
 #include <QProgressBar>
 #include <QLabel>
-#include <QSettings>
-#include <QLineEdit>
 #include <QCloseEvent>
 #include <QHeaderView>
-#include <QCheckBox>
-#include <QStyleFactory>
-
-#define nameOf(thing) #thing
-
-namespace {
-    QString defaultPath;
-    bool darkThemeEnabled;
-}
 
 void MainWindow::setupMainView()
 {
     QWidget *buttonSpacer = new QWidget(_content);
     QWidget *progressContainer = new QWidget(_content);
+    progressContainer->hide();
 
     _fileTable->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeMode::Stretch);
     _fileTable->setHorizontalHeaderLabels({ QStringLiteral("Filename") });
@@ -66,6 +56,7 @@ void MainWindow::setupMainView()
     QObject::connect(connectButton, &QPushButton::clicked, _connectDialog, &QDialog::show);
     QObject::connect(queueFilesButton, &QPushButton::clicked, this, &MainWindow::onQueueFilesClicked);
     QObject::connect(sendFilesButton, &QPushButton::clicked, this, &MainWindow::onSendFilesClicked);
+    QObject::connect(sendFilesButton, &QPushButton::clicked, progressContainer, &QWidget::show);
 
     _currentProgress->setMinimum(0);
     _currentProgress->setMaximum(100);
@@ -90,11 +81,6 @@ void MainWindow::setupMainView()
     progressLayout->addWidget(_totalProgress, 1, 1);
     progressLayout->setMargin(0);
 
-    QAction *fileMenuSettings = new QAction(QStringLiteral("Settings"), this);
-    fileMenuSettings->setShortcut(QKeySequence::Preferences);
-    fileMenuSettings->setStatusTip(QStringLiteral("Adjust some minor things"));
-    QObject::connect(fileMenuSettings, &QAction::triggered, _settingsDialog, &QDialog::show);
-
     QAction *fileMenuExit = new QAction(QStringLiteral("Exit"), this);
     fileMenuExit->setShortcut(QKeySequence::Quit);
     fileMenuExit->setStatusTip(QStringLiteral("Quit DoW"));
@@ -112,75 +98,8 @@ void MainWindow::setupMainView()
         QMessageBox::aboutQt(this);
     });
 
-    menuBar()->addMenu(QStringLiteral("File"))->addActions({fileMenuSettings, fileMenuExit});
-    menuBar()->addMenu(QStringLiteral("Help"))->addActions({helpMenuAbout, helpMenuAboutQt});
-}
-
-void MainWindow::setupSettingsView()
-{
-    //QApplication::setStyle(QStringLiteral("Fusion"));
-
-    if (!_settings->contains(QStringLiteral(nameOf(defaultPath)))) {
-        _settings->setValue(QStringLiteral(nameOf(defaultPath)), QString());
-    }
-
-    if (!_settings->contains(QStringLiteral(nameOf(darkThemeEnabled)))) {
-        _settings->setValue(QStringLiteral(nameOf(darkThemeEnabled)), false);
-    }
-
-    auto val = _settings->value(QStringLiteral(nameOf(defaultPath))).toString();
-    defaultPath = val.isEmpty() ? QDir::homePath() : val;
-
-    darkThemeEnabled = _settings->value(QStringLiteral(nameOf(darkThemeEnabled))).toBool();
-
-    // 325, because I think it looks good
-    // 68, because it's the smallest possible height
-    _settingsDialog->setFixedSize(325, 68);
-    _settingsDialog->setWindowModality(Qt::WindowModal);
-    _settingsDialog->setWindowTitle(QStringLiteral("Settings"));
-
-    QLineEdit *searchDir = new QLineEdit(_settingsDialog);
-    searchDir->setEnabled(false);
-    searchDir->setText(defaultPath);
-    searchDir->setSizePolicy(QSizePolicy::Policy::Expanding, QSizePolicy::Policy::Fixed);
-
-    QPushButton *selectDefaultDirButton = new QPushButton(QStringLiteral("Browse"), _settingsDialog);
-    selectDefaultDirButton->setSizePolicy(QSizePolicy::Policy::Minimum, QSizePolicy::Policy::Fixed);
-    QObject::connect(selectDefaultDirButton, &QPushButton::clicked, [this, searchDir]() -> void {
-        QString newDir = QFileDialog::getExistingDirectory(this, QStringLiteral("Select new default directory"), QDir::homePath(), QFileDialog::Option::ShowDirsOnly);
-
-        if (!newDir.isEmpty()) {
-            searchDir->setText(newDir);
-            _settings->setValue(QStringLiteral(nameOf(defaultPath)), newDir);
-            defaultPath = newDir;
-        }
-    });
-
-    QCheckBox *darkThemeCheckBox = new QCheckBox(QStringLiteral("Come to the dark side"), _settingsDialog);
-    QObject::connect(darkThemeCheckBox, &QCheckBox::toggled, [this](){
-        darkThemeEnabled = !darkThemeEnabled;
-        _settings->setValue(QStringLiteral(nameOf(darkThemeEnabled)), false);
-    });
-
-    darkThemeCheckBox->setChecked(true);
-
-    QPushButton *resetButton= new QPushButton(QStringLiteral("Reset"), _settingsDialog);
-    QObject::connect(resetButton, &QPushButton::clicked, [this, darkThemeCheckBox, searchDir](){
-        if (QMessageBox::question(this, QStringLiteral("Are you sure?"), QStringLiteral("Are you sure you want to revert settings to default?")) == QMessageBox::StandardButton::Yes) {
-            auto homePath = QDir::homePath();
-            searchDir->setText(homePath);
-            _settings->setValue(QStringLiteral(nameOf(defaultPath)), homePath);
-            defaultPath = homePath;
-
-            if (darkThemeEnabled) darkThemeCheckBox->toggle();
-        }
-    });
-
-    QGridLayout *layout = new QGridLayout(_settingsDialog);
-    layout->addWidget(searchDir, 0, 0);
-    layout->addWidget(selectDefaultDirButton, 0, 1, Qt::AlignRight);
-    layout->addWidget(darkThemeCheckBox, 1, 0, Qt::AlignLeft);
-    layout->addWidget(resetButton, 1, 1, Qt::AlignRight);
+    menuBar()->addMenu(QStringLiteral("File"))->addActions({ fileMenuExit });
+    menuBar()->addMenu(QStringLiteral("Help"))->addActions({ helpMenuAbout, helpMenuAboutQt });
 }
 
 void MainWindow::setupConnectView()
@@ -195,7 +114,7 @@ void MainWindow::setupConnectView()
 
 void MainWindow::onQueueFilesClicked()
 {
-    QStringList files = QFileDialog::getOpenFileNames(this, QStringLiteral("Select files"), defaultPath, QStringLiteral("All files (*.*)"));
+    QStringList files = QFileDialog::getOpenFileNames(this, QStringLiteral("Select files"), QDir::homePath(), QStringLiteral("All files (*.*)"));
 
     for (const auto& file : files) {
         int rowCount = _fileTable->rowCount();
@@ -213,18 +132,15 @@ void MainWindow::onSendFilesClicked()
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent),
       _connectDialog(new QDialog(this)),
-      _settingsDialog(new QDialog(this)),
       _content(new QWidget(this)),
       _fileTable(new QTableWidget(0, 1, this)),
       _currentProgressText(new QLabel(QStringLiteral("File 0/0"), _content)),
       _totalProgressText(new QLabel(QStringLiteral("Total Progress"), _content)),
       _currentProgress(new QProgressBar(_content)),
       _totalProgress(new QProgressBar(_content)),
-      _settings(new QSettings(QSettings::Format::NativeFormat, QSettings::Scope::UserScope, QApplication::organizationName(), QApplication::applicationName(), this)),
       _idle(true)
 {
     setupMainView();
-    setupSettingsView();
     setupConnectView();
 
     statusBar()->showMessage(QStringLiteral("Not connected"));

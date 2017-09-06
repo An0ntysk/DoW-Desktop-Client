@@ -23,28 +23,23 @@
 
 class QTableWidget;
 class QDialog;
-class QPushButton;
-class QGridLayout;
 class QProgressBar;
 class QLabel;
-class QSettings;
 
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
 
-    QDialog *_connectDialog, *_settingsDialog;
+    QDialog *_connectDialog;
 
     QWidget *_content;
     QTableWidget *_fileTable;
     QLabel *_currentProgressText, *_totalProgressText;
     QProgressBar *_currentProgress, *_totalProgress;
-    QSettings *_settings;
 
     bool _idle;
 
     void setupMainView();
-    void setupSettingsView();
     void setupConnectView();
 
 private slots:

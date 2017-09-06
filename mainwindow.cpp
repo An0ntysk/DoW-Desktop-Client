@@ -35,16 +35,16 @@
 
 void MainWindow::setupMainView()
 {
-    QWidget *buttonSpacer = new QWidget(_content);
-    QWidget *progressContainer = new QWidget(_content);
+    auto buttonSpacer = new QWidget(_content);
+    auto progressContainer = new QWidget(_content);
     progressContainer->hide();
 
     _fileTable->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeMode::Stretch);
     _fileTable->setHorizontalHeaderLabels({ QStringLiteral("Filename") });
 
-    QPushButton *connectButton = new QPushButton(QStringLiteral("Connect"), _content);
-    QPushButton *queueFilesButton = new QPushButton(QStringLiteral("Queue Files"), _content);
-    QPushButton *sendFilesButton = new QPushButton(QStringLiteral("Send Files"), _content);
+    auto connectButton = new QPushButton(QStringLiteral("Connect"), _content);
+    auto queueFilesButton = new QPushButton(QStringLiteral("Queue Files"), _content);
+    auto sendFilesButton = new QPushButton(QStringLiteral("Send Files"), _content);
 
     buttonSpacer->setSizePolicy(QSizePolicy::Policy::Maximum, QSizePolicy::Policy::Fixed);
     connectButton->setSizePolicy(QSizePolicy::Policy::Fixed, QSizePolicy::Policy::Fixed);
@@ -66,7 +66,7 @@ void MainWindow::setupMainView()
     _totalProgress->setMaximum(100);
     _totalProgress->setTextVisible(true);
 
-    QGridLayout *layout = new QGridLayout(_content);
+    auto layout = new QGridLayout(_content);
     layout->addWidget(_fileTable, 0, 0, 1, -1);
     layout->addWidget(connectButton, 1, 0);
     layout->addWidget(queueFilesButton, 1, 1);
@@ -74,25 +74,25 @@ void MainWindow::setupMainView()
     layout->addWidget(sendFilesButton, 1, 3);
     layout->addWidget(progressContainer, 2, 0, 1, -1);
 
-    QGridLayout *progressLayout = new QGridLayout(progressContainer);
+    auto progressLayout = new QGridLayout(progressContainer);
     progressLayout->addWidget(_currentProgressText, 0, 0);
     progressLayout->addWidget(_currentProgress, 0, 1);
     progressLayout->addWidget(_totalProgressText, 1, 0);
     progressLayout->addWidget(_totalProgress, 1, 1);
     progressLayout->setMargin(0);
 
-    QAction *fileMenuExit = new QAction(QStringLiteral("Exit"), this);
+    auto fileMenuExit = new QAction(QStringLiteral("Exit"), this);
     fileMenuExit->setShortcut(QKeySequence::Quit);
     fileMenuExit->setStatusTip(QStringLiteral("Quit DoW"));
     QObject::connect(fileMenuExit, &QAction::triggered, this, &MainWindow::close);
 
-    QAction *helpMenuAbout = new QAction(QStringLiteral("About"), this);
+    auto helpMenuAbout = new QAction(QStringLiteral("About"), this);
     helpMenuAbout->setStatusTip(QStringLiteral("Information about DoW"));
     QObject::connect(helpMenuAbout, &QAction::triggered, [this](){
         QMessageBox::about(this, QStringLiteral("About"), QStringLiteral("Some info text"));
     });
 
-    QAction *helpMenuAboutQt = new QAction(QStringLiteral("About Qt"), this);
+    auto helpMenuAboutQt = new QAction(QStringLiteral("About Qt"), this);
     helpMenuAboutQt->setStatusTip(QStringLiteral("Powered by Qt"));
     QObject::connect(helpMenuAboutQt, &QAction::triggered, [this](){
         QMessageBox::aboutQt(this);
@@ -108,13 +108,13 @@ void MainWindow::setupConnectView()
     _connectDialog->setWindowModality(Qt::WindowModal);
     _connectDialog->setWindowTitle(QStringLiteral("Connect to device"));
 
-    QGridLayout *layout = new QGridLayout(_connectDialog);
+    auto layout = new QGridLayout(_connectDialog);
     (void)layout;
 }
 
 void MainWindow::onQueueFilesClicked()
 {
-    QStringList files = QFileDialog::getOpenFileNames(this, QStringLiteral("Select files"), QDir::homePath(), QStringLiteral("All files (*.*)"));
+    auto files = QFileDialog::getOpenFileNames(this, QStringLiteral("Select files"), QDir::homePath(), QStringLiteral("All files (*.*)"));
 
     for (const auto& file : files) {
         int rowCount = _fileTable->rowCount();
